@@ -2,6 +2,8 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=flat&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Docker Image Size](https://img.shields.io/docker/image-size/razewang/chaoxing-web?sort=date)](https://github.com/Razewang/chaoxing-web/pkgs/container/chaoxing-web)
+[![Docker Pulls](https://img.shields.io/docker/pulls/razewang/chaoxing-web)](https://github.com/Razewang/chaoxing-web/pkgs/container/chaoxing-web)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-3.1.3-orange.svg)](pyproject.toml)
 
@@ -19,7 +21,36 @@
 
 ## 🚀 快速开始
 
-### 环境要求
+### 🐳 Docker快速部署（推荐）
+
+一键启动，无需配置Python环境：
+
+```bash
+# 1. 创建配置文件
+echo "[account]
+username = 你的手机号
+password = 你的密码
+
+[course]
+course_ids = 
+
+[settings]
+speed = 1.0" > config.ini
+
+# 2. 启动服务
+docker run -d \
+  --name chaoxing-web \
+  -p 5000:5000 \
+  -v $(pwd)/config.ini:/app/config.ini:ro \
+  ghcr.io/razewang/chaoxing-web:latest
+
+# 3. 访问服务
+open http://localhost:5000
+```
+
+### 本地部署
+
+#### 环境要求
 
 - Python 3.10 或更高版本
 - 推荐使用虚拟环境
