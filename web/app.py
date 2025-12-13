@@ -12,11 +12,18 @@ from flask_socketio import SocketIO, emit
 import logging
 from logging.handlers import RotatingFileHandler
 
+# 添加父目录到系统路径，以便导入api模块
+PROJECT_ROOT = Path(__file__).parent.parent.absolute()
+sys.path.insert(0, str(PROJECT_ROOT))
+
 
 class ChaoxingWebApp:
     def __init__(self):
         self.app = Flask(__name__)
         self.app.config['SECRET_KEY'] = 'chaoxing-web-secret-key'
+
+        # 设置项目根目录
+        self.project_root = PROJECT_ROOT
         self.app.config['CELERY'] = dict(
             broker_url="db+sqlite:///celeryresults.sqlite3",
             result_backend="sqlite:///celeryresults.sqlite3",
@@ -168,8 +175,11 @@ class ChaoxingWebApp:
     def run_program(self):
         try:
             # 检查main.py是否存在
-            if not os.path.exists('main.py'):
-                error_msg = '错误: main.py文件不存在'
+            main_py_path = self.project_root / 'main.py'
+            config_path = self.project_root / 'config.ini'
+
+            if not main_py_path.exists():
+                error_msg = f'错误: main.py文件不存在于 {main_py_path}'
                 with self.output_lock:
                     self.output_buffer.append(error_msg)
                 self.socketio.emit('output', {'data': error_msg})
@@ -177,13 +187,14 @@ class ChaoxingWebApp:
 
             # 运行main.py（使用sys.executable确保使用正确的Python解释器）
             self.process = subprocess.Popen(
-                [sys.executable, 'main.py', '-c', 'config.ini'],
+                [sys.executable, str(main_py_path), '-c', str(config_path)],
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
                 bufsize=1,
-                universal_newlines=True
+                universal_newlines=True,
+                cwd=str(self.project_root)  # 设置工作目录为项目根目录
             )
 
             # 实时读取输出

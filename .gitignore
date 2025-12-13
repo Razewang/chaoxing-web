@@ -166,3 +166,9 @@ REDUNDANCY_REPORT.md
 RUNTIME_TEST_COMPLETE.md
 RUN_TEST_REPORT.md
 WEB_COMPARISON.md
+
+# Web specific temporary files
+web/celeryresults.sqlite3
+web/celerybeat-schedule
+web/celerybeat.pid
+celeryresults.sqlite3

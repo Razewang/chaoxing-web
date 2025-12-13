@@ -1,0 +1,16 @@
+# Web界面专用依赖
+# 这些依赖是在基础 requirements.txt 之上额外需要的
+
+# Web框架
+Flask>=3.1.2
+Flask-SocketIO>=5.3.6
+
+# 异步任务队列
+Celery>=5.5.3
+
+# 实时通信
+python-socketio>=5.9.0
+eventlet>=0.33.3
+
+# 可选：Redis支持（如果使用Redis作为Celery broker）
+# redis>=5.0.0

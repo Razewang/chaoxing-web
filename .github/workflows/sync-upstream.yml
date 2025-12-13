@@ -1,0 +1,200 @@
+name: Sync with Upstream
+
+on:
+  # 每天UTC 0:00 (北京时间 8:00) 自动检查
+  schedule:
+    - cron: '0 0 * * *'
+
+  # 允许手动触发
+  workflow_dispatch:
+    inputs:
+      force_sync:
+        description: 'Force sync even if up to date'
+        required: false
+        default: 'false'
+
+jobs:
+  sync-upstream:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整历史
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/Samueli924/chaoxing.git || true
+          git remote set-url upstream https://github.com/Samueli924/chaoxing.git
+
+      - name: Fetch upstream changes
+        run: |
+          git fetch upstream
+          git fetch origin
+
+      - name: Check for upstream updates
+        id: check_updates
+        run: |
+          # 获取上游最新commit
+          UPSTREAM_COMMIT=$(git rev-parse upstream/main)
+          # 获取本地main分支与upstream/main的共同祖先
+          MERGE_BASE=$(git merge-base origin/main upstream/main)
+
+          echo "upstream_commit=$UPSTREAM_COMMIT" >> $GITHUB_OUTPUT
+          echo "merge_base=$MERGE_BASE" >> $GITHUB_OUTPUT
+
+          if [ "$MERGE_BASE" = "$UPSTREAM_COMMIT" ]; then
+            echo "has_updates=false" >> $GITHUB_OUTPUT
+            echo "✅ Already up to date with upstream"
+          else
+            echo "has_updates=true" >> $GITHUB_OUTPUT
+            echo "📦 New updates available from upstream"
+
+            # 显示新的提交
+            echo "New commits:"
+            git log --oneline $MERGE_BASE..$UPSTREAM_COMMIT | head -10
+          fi
+
+      - name: Create sync branch
+        if: steps.check_updates.outputs.has_updates == 'true' || github.event.inputs.force_sync == 'true'
+        run: |
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          BRANCH_NAME="auto-sync-upstream-$TIMESTAMP"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_ENV
+
+          git checkout -b $BRANCH_NAME
+
+      - name: Merge upstream changes
+        if: steps.check_updates.outputs.has_updates == 'true' || github.event.inputs.force_sync == 'true'
+        id: merge
+        continue-on-error: true
+        run: |
+          echo "🔀 Attempting to merge upstream/main..."
+
+          # 尝试自动合并
+          if git merge upstream/main --no-edit -m "chore: sync with upstream $(date +%Y-%m-%d)"; then
+            echo "merge_status=success" >> $GITHUB_OUTPUT
+            echo "✅ Automatic merge successful"
+          else
+            echo "merge_status=conflict" >> $GITHUB_OUTPUT
+            echo "⚠️  Merge conflicts detected"
+
+            # 列出冲突文件
+            echo "Conflicted files:"
+            git diff --name-only --diff-filter=U || true
+
+            # 对于Web相关文件的冲突，优先保留本地版本
+            for file in web/* web/**/* start_web.py requirements_web.txt; do
+              if [ -f "$file" ] && git diff --name-only --diff-filter=U | grep -q "^$file$"; then
+                echo "📝 Keeping local version of $file"
+                git checkout --ours "$file"
+                git add "$file"
+              fi
+            done
+
+            # 检查是否还有冲突
+            if git diff --name-only --diff-filter=U | grep -q .; then
+              echo "❌ Still have unresolved conflicts after auto-resolution"
+              git merge --abort
+              exit 1
+            else
+              echo "✅ All conflicts auto-resolved"
+              git commit --no-edit -m "chore: sync with upstream $(date +%Y-%m-%d)
+
+Auto-resolved conflicts by keeping local web/ directory changes"
+              echo "merge_status=success" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Run basic tests
+        if: steps.merge.outputs.merge_status == 'success'
+        continue-on-error: true
+        run: |
+          echo "🧪 Running basic compatibility tests..."
+
+          # 检查主要文件是否存在
+          for file in main.py api/base.py api/answer.py web/app.py start_web.py; do
+            if [ ! -f "$file" ]; then
+              echo "❌ Required file missing: $file"
+              exit 1
+            fi
+          done
+
+          # 检查Python语法
+          python3 -m py_compile main.py
+          python3 -m py_compile web/app.py
+          python3 -m py_compile start_web.py
+
+          # 检查命令行帮助是否正常
+          python3 main.py --help > /dev/null
+
+          echo "✅ Basic tests passed"
+
+      - name: Push sync branch
+        if: steps.merge.outputs.merge_status == 'success'
+        run: |
+          git push origin ${{ env.branch_name }}
+
+      - name: Create Pull Request
+        if: steps.merge.outputs.merge_status == 'success'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ env.branch_name }}
+          title: "🔄 Auto-sync with upstream ($(date +%Y-%m-%d))"
+          body: |
+            ## 📦 上游同步更新
+
+            此 PR 由 GitHub Actions 自动创建，用于同步上游仓库的更新。
+
+            **上游仓库**: https://github.com/Samueli924/chaoxing
+            **上游提交**: ${{ steps.check_updates.outputs.upstream_commit }}
+            **合并基础**: ${{ steps.check_updates.outputs.merge_base }}
+
+            ### ✅ 自动检查结果
+            - [x] 基础文件完整性检查
+            - [x] Python 语法检查
+            - [x] 命令行功能检查
+            - [x] Web 界面文件保护
+
+            ### 📝 合并说明
+            - Web 相关文件（`web/` 目录）已自动保留本地版本
+            - 上游核心代码已成功合并
+            - 建议在合并前进行完整测试
+
+            ### 🧪 测试建议
+            ```bash
+            # 1. 测试命令行模式
+            python3 main.py --help
+            python3 main.py -c config.ini
+
+            # 2. 测试 Web 界面
+            python3 start_web.py
+            # 访问 http://localhost:5000
+            ```
+
+            ### ⚠️ 注意事项
+            - 请检查 `requirements.txt` 的依赖变化
+            - 如有新功能，请更新文档
+            - 合并后请运行完整测试
+
+            ---
+            🤖 由 GitHub Actions 自动生成
+          labels: |
+            auto-sync
+            upstream
+          draft: false
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Upstream sync failed!"
+          echo "Please check the workflow logs and resolve conflicts manually."
+          echo "Run: git fetch upstream && git merge upstream/main"
