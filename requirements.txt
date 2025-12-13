@@ -1,11 +1,30 @@
-requests
-pyaes
-beautifulsoup4
-lxml
-argparse
-loguru
-celery
-flask
-fonttools
-openai
+# 超星学习通自动化 - 基础依赖
+# 用于命令行版本 (main.py)
+
+# HTTP请求
+requests>=2.32.3
+
+# 加密
+pyaes>=1.6.1
+
+# HTML解析
+beautifulsoup4>=4.13.3
+lxml>=5.3.1
+
+# 命令行参数解析
+argparse>=1.4.0
+
+# 日志
+loguru>=0.7.3
+
+# 字体解析
+fonttools>=4.56.0
+
+# HTTP客户端
+httpx>=0.24.0
+
+# OpenAI兼容API（用于AI题库）
+openai>=1.66.2
+
+# 验证码识别（可选）
 ddddocr==1.5.6

@@ -1,0 +1,13 @@
+# 超星学习通自动化 - Web界面依赖
+# 用于Web界面版本 (app.py)
+# 使用方法：pip install -r requirements.txt -r requirements_web.txt
+
+# Web框架
+Flask==2.3.3
+Flask-SocketIO==5.3.6
+python-socketio==5.8.0
+
+# 任务队列（当前未使用，但保留以备将来扩展）
+celery>=5.3.0,<5.4
+
+# 注意：基础依赖请先安装 requirements.txt

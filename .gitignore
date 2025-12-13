@@ -154,3 +154,15 @@ config*.ini
 .idea/
 .vscode/
 cache.json
+
+# Claude AI assistant files
+.claude/
+
+# Temporary documentation and reports
+BUG_FIX_SUMMARY.md
+BUG_REPORT.md
+CLEANUP_SUMMARY.md
+REDUNDANCY_REPORT.md
+RUNTIME_TEST_COMPLETE.md
+RUN_TEST_REPORT.md
+WEB_COMPARISON.md

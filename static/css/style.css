@@ -1,0 +1,156 @@
+/* 自定义样式 */
+body {
+    background-color: #f8f9fa;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.navbar-brand {
+    font-weight: 600;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.terminal-container {
+    height: 400px;
+    background-color: #1e1e1e;
+    padding: 10px;
+    overflow-y: auto;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.terminal-output {
+    color: #ffffff;
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.terminal-input-line {
+    display: flex;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.terminal-prompt {
+    color: #4fc3f7;
+    margin-right: 5px;
+}
+
+.terminal-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    outline: none;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.status-indicator {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.status-indicator i {
+    font-size: 12px;
+    margin-right: 5px;
+}
+
+.btn:disabled {
+    cursor: not-allowed;
+}
+
+.quick-action {
+    transition: all 0.2s ease;
+}
+
+.quick-action:hover {
+    transform: translateY(-2px);
+}
+
+/* 终端滚动条 */
+.terminal-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.terminal-container::-webkit-scrollbar-track {
+    background: #2d2d2d;
+}
+
+.terminal-container::-webkit-scrollbar-thumb {
+    background: #555;
+    border-radius: 4px;
+}
+
+.terminal-container::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}
+
+/* 日志级别颜色 */
+.log-trace { color: #888; }
+.log-debug { color: #17a2b8; }
+.log-info { color: #28a745; }
+.log-warning { color: #ffc107; }
+.log-error { color: #dc3545; }
+
+/* xterm样式适配 */
+.xterm {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+.xterm-viewport {
+    overflow-y: auto !important;
+}
+
+/* 加载动画 */
+.spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+}
+
+/* 提示信息 */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1050;
+}
+
+/* 配置表单样式 */
+.form-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.form-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .terminal-container {
+        height: 300px;
+    }
+    
+    .quick-action {
+        font-size: 0.875rem;
+    }
+}
