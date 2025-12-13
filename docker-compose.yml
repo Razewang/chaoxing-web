@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  chaoxing-web:
+    build: .
+    container_name: chaoxing-web
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./config.ini:/app/config.ini:ro
+      - ./logs:/app/logs
+    environment:
+      - TZ=Asia/Shanghai
+    restart: unless-stopped
+    networks:
+      - chaoxing-network
+
+  # 可选：添加一个反向代理服务
+  nginx:
+    image: nginx:alpine
+    container_name: chaoxing-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - chaoxing-web
+    restart: unless-stopped
+    networks:
+      - chaoxing-network
+    profiles:
+      - proxy
+
+networks:
+  chaoxing-network:
+    driver: bridge
+
+volumes:
+  logs:
